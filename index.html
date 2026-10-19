@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultiPlay | Práctica Universitaria</title>
+<style>
+:root{color-scheme:dark;--bg:#090f1f;--card:#17243b;--line:#32425d;--text:#f4f7ff;--muted:#b0bfd3;--accent:#53d79c}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#0c1730,#080d19);color:var(--text);font-family:system-ui,Segoe UI,Arial,sans-serif;min-height:100vh}
+header{padding:34px 18px;text-align:center;border-bottom:1px solid var(--line)}h1{margin:0;font-size:clamp(2rem,5vw,3rem)}h1 span{color:var(--accent)}header p{color:var(--muted);margin:10px 0 0}
+main{max-width:1100px;margin:0 auto;padding:25px 16px 50px}.panel{background:var(--card);border:1px solid var(--line);padding:24px;border-radius:17px;margin-bottom:22px;box-shadow:0 10px 26px #0003}h2{margin:0 0 15px;font-size:1.35rem}label{display:block;font-weight:650;margin:12px 0 8px}input{width:100%;padding:14px;border-radius:10px;background:#0c172b;color:white;border:1px solid #526079;font-size:1rem}input:focus{outline:2px solid var(--accent)}button{padding:12px 17px;margin:12px 8px 0 0;border:0;border-radius:10px;background:var(--accent);color:#092016;font-weight:750;cursor:pointer;font-size:.95rem}button:hover{filter:brightness(1.07)}button.alt{background:#334662;color:#fff}button.danger{background:#da5757;color:#fff}.hint{color:var(--muted);font-size:.94rem;line-height:1.5}.status{min-height:1.5em;color:#f6c979}.viewer{aspect-ratio:16/9;background:#05080e;border-radius:12px;overflow:hidden;display:grid;place-items:center}.viewer iframe,.viewer video{width:100%;height:100%;border:0}.placeholder{color:var(--muted);text-align:center;padding:25px}.headrow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center}.headrow h2{margin:0}.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}.chip{border:1px solid #506481;border-radius:12px;padding:10px 13px;background:#101c30;display:flex;align-items:center;gap:8px}.chip button{margin:0;padding:7px 10px;font-size:.82rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px}.clip{border:1px solid var(--line);border-radius:13px;background:#111e33;padding:12px;min-width:0}.clip video{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px}.clip p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}footer{text-align:center;color:var(--muted);padding:20px}
+.kick-grid iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:9px;background:#000}.kick-grid .clip h3{font-size:1rem;margin:4px 0 10px}.kick-grid .clip button{margin-top:12px}</style>
+</head>
+<body>
+<header><h1>Multi<span>Play</span></h1><p>Reproductor de transmisiones Kick y videos en bucle • Práctica universitaria</p></header>
+<main>
+<section class="panel"><h2>🔴 Ver una transmisión de Kick</h2><label for="kickUrl">Enlace del canal de Kick</label><input id="kickUrl" type="text" placeholder="https://kick.com/nombre-del-canal" autocomplete="off"><button id="showKick">▶ Reproducir en vivo</button><button id="saveKick" class="alt">＋ Guardar canal</button><p class="hint">El reproductor oficial se inicia en silencio. Si el canal está desconectado, no habrá un directo que mostrar.</p><p class="status" id="kickStatus" role="status"></p><div class="viewer" id="kickViewer"><p class="placeholder">Introduce un canal de Kick para ver su transmisión aquí.</p></div><div class="headrow" style="margin-top:15px"><strong id="currentName">Ningún canal seleccionado</strong><button id="stopKick" class="danger">Detener directo</button></div><h2 style="margin-top:22px">Mis canales guardados</h2><div class="chips" id="savedChannels"><span class="hint">Todavía no hay canales guardados.</span></div></section>
+
+<section class="panel" id="kickMultiples">
+<h2>📺 Mostrar varias veces el directo de Kick</h2>
+<p class="hint">Para demostrar múltiples reproductores, pega el enlace de un canal en el campo superior y elige cuántas ventanas quieres mostrar. Cada ventana se carga silenciada para evitar sonidos superpuestos. Un directo se transmite en tiempo real; no puede volver a comenzar desde el principio como un video grabado.</p>
+<label for="kickCopies">Cantidad de ventanas (1 a 6)</label>
+<input type="number" id="kickCopies" min="1" max="6" value="3">
+<button id="addKickCopies">＋ Mostrar varias ventanas</button>
+<button id="clearKickCopies" class="danger">Eliminar ventanas</button>
+<p class="status" id="kickCopiesStatus" role="status"></p>
+<div class="headrow"><h2>Ventanas de Kick</h2><strong id="kickCopiesCount">0</strong></div>
+<div class="grid kick-grid" id="kickCopiesGrid"></div>
+</section>
+<section class="panel"><h2>🔁 Repetir videos de tu computadora</h2><p class="hint">Para demostrar el requisito de bucle de la práctica: agrega un MP4, WebM u otro archivo de video compatible, elige cuántas copias y cada una se repetirá al terminar.</p><label for="localFile">Seleccionar video</label><input type="file" id="localFile" accept="video/*"><label for="copies">Cantidad de copias (1 a 12)</label><input type="number" id="copies" min="1" max="12" value="2"><button id="addCopies">＋ Agregar copias en bucle</button><button id="clearCopies" class="danger">Eliminar videos</button><p class="status" id="filesStatus" role="status"></p><div class="headrow"><h2>Videos agregados</h2><strong id="count">0</strong></div><div class="grid" id="localGrid"></div></section>
+</main><footer>HTML + CSS + JavaScript | Proyecto académico</footer>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let channels=[];
+try { const stored=JSON.parse(localStorage.getItem('multiplay-kick-channels')||'[]'); if(Array.isArray(stored)) channels=stored.filter(x=>typeof x==='string'&&/^[\w-]{1,50}$/.test(x)); }catch(e){}
+function channelName(value){
+ const raw=value.trim();
+ if(/^[a-zA-Z0-9_-]{1,50}$/.test(raw))return raw;
+ try{
+  const url=new URL(raw);
+  if(url.protocol!=='https:'&&url.protocol!=='http:')return null;
+  if(!['kick.com','www.kick.com','player.kick.com'].includes(url.hostname.toLowerCase()))return null;
+  const parts=url.pathname.split('/').filter(Boolean);
+  return parts.length===1&&/^[a-zA-Z0-9_-]{1,50}$/.test(parts[0])?parts[0]:null;
+ }catch{return null;}
+}
+function showChannel(name){
+ const viewer=$('kickViewer');viewer.replaceChildren();
+ const frame=document.createElement('iframe');
+ frame.src='https://player.kick.com/'+encodeURIComponent(name)+'?autoplay=true&muted=true';
+ frame.title='Transmisión de Kick: '+name;
+ frame.allow='autoplay; fullscreen; picture-in-picture';
+ frame.allowFullscreen=true;
+ frame.referrerPolicy='strict-origin-when-cross-origin';
+ viewer.append(frame);
+ $('currentName').textContent='Canal: '+name;
+ $('kickUrl').value='https://kick.com/'+name;
+ $('kickStatus').textContent='Reproductor de '+name+' cargado. La transmisión solo aparecerá si está en vivo.';
+}
+$('showKick').onclick=()=>{const n=channelName($('kickUrl').value);if(!n){$('kickStatus').textContent='Escribe un enlace válido de canal Kick.';return;}showChannel(n);};
+$('stopKick').onclick=()=>{$('kickViewer').replaceChildren();const p=document.createElement('p');p.className='placeholder';p.textContent='Reproductor detenido.';$('kickViewer').append(p);$('currentName').textContent='Ningún canal seleccionado';$('kickStatus').textContent='';};
+function renderChannels(){const target=$('savedChannels');target.replaceChildren();if(!channels.length){const span=document.createElement('span');span.className='hint';span.textContent='Todavía no hay canales guardados.';target.append(span);return;}
+ channels.forEach(name=>{const chip=document.createElement('div');chip.className='chip';const txt=document.createElement('strong');txt.textContent=name;const watch=document.createElement('button');watch.textContent='Ver';watch.onclick=()=>showChannel(name);const remove=document.createElement('button');remove.className='danger';remove.textContent='×';remove.title='Quitar canal guardado';remove.onclick=()=>{channels=channels.filter(x=>x!==name);persist();renderChannels();};chip.append(txt,watch,remove);target.append(chip);});}
+function persist(){try{localStorage.setItem('multiplay-kick-channels',JSON.stringify(channels));}catch(e){}}
+$('saveKick').onclick=()=>{const n=channelName($('kickUrl').value);if(!n){$('kickStatus').textContent='Primero escribe un canal de Kick válido.';return;}if(!channels.includes(n))channels.push(n);persist();renderChannels();$('kickStatus').textContent='Canal '+n+' guardado.';};renderChannels();
+let clips=[];
+function updateCount(){$('count').textContent=String(clips.length);}
+function removeClip(entry){entry.card.remove();clips=clips.filter(x=>x!==entry);entry.video.pause();entry.video.removeAttribute('src');entry.video.load();URL.revokeObjectURL(entry.url);updateCount();}
+$('addCopies').onclick=()=>{const file=$('localFile').files[0];const number=Number($('copies').value);if(!file||!(file.type.startsWith('video/')||/\.(mp4|webm|ogg|ogv|mov|m4v)$/i.test(file.name))){$('filesStatus').textContent='Selecciona primero un archivo de video.';return;}if(!Number.isInteger(number)||number<1||number>12){$('filesStatus').textContent='Elige un número de copias entre 1 y 12.';return;}
+ for(let i=0;i<number;i++){const url=URL.createObjectURL(file);const card=document.createElement('article');card.className='clip';const title=document.createElement('p');title.textContent=file.name+' · copia '+(i+1);const video=document.createElement('video');video.controls=true;video.loop=true;video.autoplay=true;video.muted=true;video.playsInline=true;video.src=url;const remove=document.createElement('button');remove.className='danger';remove.textContent='Eliminar';const entry={card,video,url};remove.onclick=()=>removeClip(entry);card.append(title,video,remove);$('localGrid').append(card);clips.push(entry);video.play().catch(()=>{});}
+ updateCount();$('filesStatus').textContent='Agregadas '+number+' copias con bucle activado.';};
+$('clearCopies').onclick=()=>{[...clips].forEach(removeClip);$('filesStatus').textContent='Videos eliminados.';};
+
+// Sección de demostración: varias ventanas embebidas de un mismo canal.
+const kickCards = [];
+function refreshKickCards(){ $('kickCopiesCount').textContent=String(kickCards.length); }
+function removeKickCard(card){
+ const index=kickCards.indexOf(card);
+ if(index!==-1) kickCards.splice(index,1);
+ card.remove();
+ refreshKickCards();
+}
+$('addKickCopies').onclick=()=>{
+ const name=channelName($('kickUrl').value);
+ const number=Number($('kickCopies').value);
+ if(!name){$('kickCopiesStatus').textContent='Introduce arriba un enlace válido de un canal de Kick.';return;}
+ if(!Number.isInteger(number)||number<1||number>6){$('kickCopiesStatus').textContent='Elige entre 1 y 6 ventanas.';return;}
+ // Reemplazar la cuadrícula anterior evita acumulación accidental.
+ kickCards.slice().forEach(removeKickCard);
+ for(let i=0;i<number;i++){
+  const card=document.createElement('article');card.className='clip';
+  const title=document.createElement('h3');title.textContent='Kick · '+name+' · ventana '+(i+1);
+  const iframe=document.createElement('iframe');
+  iframe.src='https://player.kick.com/'+encodeURIComponent(name)+'?autoplay=true&muted=true';
+  iframe.title='Directo de '+name+' - ventana '+(i+1);
+  iframe.allow='autoplay; fullscreen; picture-in-picture';
+  iframe.allowFullscreen=true;
+  iframe.loading='lazy';
+  const remove=document.createElement('button');remove.className='danger';remove.textContent='Eliminar ventana';remove.onclick=()=>removeKickCard(card);
+  card.append(title,iframe,remove);$('kickCopiesGrid').append(card);kickCards.push(card);
+ }
+ refreshKickCards();
+ $('kickCopiesStatus').textContent='Se crearon '+number+' ventanas de '+name+'. Solo se verá imagen si el canal está transmitiendo en vivo.';
+};
+$('clearKickCopies').onclick=()=>{kickCards.slice().forEach(removeKickCard);$('kickCopiesStatus').textContent='Ventanas eliminadas.';};
+</script>
+</body>
+</html>

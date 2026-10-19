@@ -18,9 +18,10 @@ main{max-width:1100px;margin:0 auto;padding:25px 16px 50px}.panel{background:var
 
 <section class="panel" id="kickMultiples">
 <h2>📺 Mostrar varias veces el directo de Kick</h2>
-<p class="hint">Para demostrar múltiples reproductores, pega el enlace de un canal en el campo superior y elige cuántas ventanas quieres mostrar. Cada ventana se carga silenciada para evitar sonidos superpuestos. Un directo se transmite en tiempo real; no puede volver a comenzar desde el principio como un video grabado.</p>
-<label for="kickCopies">Cantidad de ventanas (1 a 6)</label>
-<input type="number" id="kickCopies" min="1" max="6" value="3">
+<p class="hint">Para demostrar múltiples reproductores, pega el enlace de un canal en el campo superior y elige cuántas ventanas quieres mostrar. Puedes solicitar audio en las ventanas, pero tu navegador puede bloquear la reproducción automática con sonido. 100 reproductores pueden consumir demasiada memoria, CPU y conexión. Un directo se transmite en tiempo real; no puede volver a comenzar desde el principio como un video grabado.</p>
+<label for="kickCopies">Cantidad de ventanas (1 a 100)</label>
+<input type="number" id="kickCopies" min="1" max="100" value="6">
+<label style="display:flex;align-items:center;gap:10px;font-weight:500"><input type="checkbox" id="kickAudio" style="width:auto;accent-color:var(--accent)" checked> Solicitar audio en cada transmisión (puede requerir activación manual)</label>
 <button id="addKickCopies">＋ Mostrar varias ventanas</button>
 <button id="clearKickCopies" class="danger">Eliminar ventanas</button>
 <p class="status" id="kickCopiesStatus" role="status"></p>
@@ -85,14 +86,15 @@ $('addKickCopies').onclick=()=>{
  const name=channelName($('kickUrl').value);
  const number=Number($('kickCopies').value);
  if(!name){$('kickCopiesStatus').textContent='Introduce arriba un enlace válido de un canal de Kick.';return;}
- if(!Number.isInteger(number)||number<1||number>6){$('kickCopiesStatus').textContent='Elige entre 1 y 6 ventanas.';return;}
+ if(!Number.isInteger(number)||number<1||number>100){$('kickCopiesStatus').textContent='Elige entre 1 y 100 ventanas.';return;}
+ const audio=$('kickAudio').checked;
  // Reemplazar la cuadrícula anterior evita acumulación accidental.
  kickCards.slice().forEach(removeKickCard);
  for(let i=0;i<number;i++){
   const card=document.createElement('article');card.className='clip';
   const title=document.createElement('h3');title.textContent='Kick · '+name+' · ventana '+(i+1);
   const iframe=document.createElement('iframe');
-  iframe.src='https://player.kick.com/'+encodeURIComponent(name)+'?autoplay=true&muted=true';
+  iframe.src='https://player.kick.com/'+encodeURIComponent(name)+'?autoplay=true&muted='+(audio?'false':'true');
   iframe.title='Directo de '+name+' - ventana '+(i+1);
   iframe.allow='autoplay; fullscreen; picture-in-picture';
   iframe.allowFullscreen=true;
@@ -101,9 +103,10 @@ $('addKickCopies').onclick=()=>{
   card.append(title,iframe,remove);$('kickCopiesGrid').append(card);kickCards.push(card);
  }
  refreshKickCards();
- $('kickCopiesStatus').textContent='Se crearon '+number+' ventanas de '+name+'. Solo se verá imagen si el canal está transmitiendo en vivo.';
+ $('kickCopiesStatus').textContent='Se crearon '+number+' ventanas de '+name+'. '+(audio?'Audio solicitado en todas; si el navegador lo bloquea, activa el sonido dentro del reproductor.':'Ventanas silenciadas.')+' Solo se verá imagen si el canal está en vivo. Si se congela la página, reduce el número de ventanas.';
 };
 $('clearKickCopies').onclick=()=>{kickCards.slice().forEach(removeKickCard);$('kickCopiesStatus').textContent='Ventanas eliminadas.';};
 </script>
 </body>
 </html>
+
